@@ -55,11 +55,13 @@ Run a socket listening on the port given in the constructor
 =cut
 
 sub handle { 
-    my($self, $action) = @_;
-    
+    my($self, $action, $connected) = @_;
+    print("*** value of connected is $connected\n");
     $self->action($action);
-    $self->socket($self->open_socket() ); 
-    $self->listener_thread(threads->create( 'listen', $self));
+    $self->socket($self->open_socket() );
+ 
+    $self->listener_thread(threads->create( 'listen', $self, \$connected));
+    print("finished handle method");
 }
 
 sub pending_sessions {
@@ -84,23 +86,32 @@ sub close_all {
 
 
 sub listen {
-    my($self) = @_;
-
+    my($self, $connected) = @_;
+    print("In listen value of connected is $connected\n");
     while ( my $connection = $self->socket()->accept() ) {
-        threads->create('handle_connection', $self, $connection);
+         print("Listening on socket....\n");
+         my $peer_address = $connection->peerport();
+         print "Accepted New Client Connection From : $peer_address\n";
+
+        threads->create('handle_connection', $self, $connection, $connected);
     }
-    
+    print("Finished listen loop\n");
 }
 
 sub handle_connection {
-    my($self, $connection) = @_;
+    my($self, $connection, $connected) = @_;
+    print("Invoking handler action....\n");
     my $return = $self->action->($self, $connection);
+    print("Done handler action, closing connection....\n");
     $connection->close;
-    return $return;
-    
+    print("Setting connected, which is $connected, to value 0\n");
+    $$connected = 0;
+    print("Finished handle_connection\n");
+    return $return; 
 }
 
-sub open_socket { 
+sub open_socket {
+    print("Opening socket....\n");
     my($self) = @_;
     my $socket = IO::Socket::INET->new(LocalPort => $self->port,
                                        LocalHost => 'localhost',
