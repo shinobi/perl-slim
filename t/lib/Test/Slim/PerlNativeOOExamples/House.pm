@@ -7,7 +7,7 @@ sub new {
 	my $class = shift;
 	my $self = {
 		bedrooms => shift, 
-		squareFeet => shift
+		square_feet => shift
 	};
 	
 	bless($self, $class);
@@ -19,9 +19,21 @@ sub bedrooms {
 	return $self->{bedrooms};
 }
 
-sub squareFeet {
+sub set_bedrooms {
 	my $self = shift;
-	return $self->{squareFeet};
+	$self->{bedrooms} = shift;
+	return;
+}
+
+sub square_feet {
+	my $self = shift;
+	return $self->{square_feet};
+}
+
+sub total_cost {
+	my $self = shift;
+	my $cost_per_square_foot = shift;
+	return ($self->{square_feet}) * $cost_per_square_foot;
 }
 
 1;

@@ -27,20 +27,29 @@ Jim Weaver <weaver.je@gmail.com>
 sub create {
 	#symbol support and lib creation not implemented yet, just class instantiation
 	#returning exception for fitnesse not implemented yet.
-	my($self, $instance_name, $class_name, @constructor_arguments) = @_;
+	my($self, $instance_id, $class_name, @constructor_arguments) = @_;
 	my $instance = $self->construct_instance($class_name, @constructor_arguments);
-	$self->set_instance($instance_name, $instance);
+	$self->set_instance($instance_id, $instance);
 	return "OK";
 }
 
+sub call {
+	my($self, $instance_id, $method_name, @arguments) = @_;
+	my $instance = $self->instance($instance_id);
+	print("Executor retrieved instance by id: ", $instance_id, ", value is: ", $instance, "\n");
+	my $return_value = $instance->$method_name(@arguments);
+	print("Return value is : ", $return_value, "\n");
+	return $return_value;
+}
+
 sub set_instance {
-    my($self, $instance_name, $instance) = @_;
-    $self->fixture_instances->{$instance_name} = $instance;
+    my($self, $instance_id, $instance) = @_;
+    $self->fixture_instances->{$instance_id} = $instance;
 }
 
 sub instance {
-	my($self, $instance_name) = @_;
-	return $self->fixture_instances->{$instance_name};
+	my($self, $instance_id) = @_;
+	return $self->fixture_instances->{$instance_id};
 }
 
 sub construct_instance {

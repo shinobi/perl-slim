@@ -40,7 +40,31 @@ sub can_make_an_object_returns_ok : Test(3) {
 	my $instance_created = $statementExecutor->instance("obj_1");
 	is(@$response[0], "inst_1", "instruction id returned as first element");
 	is(@$response[1], "OK", "ok returned as second element");
-	is($instance_created->squareFeet, 1000, "instance created with correct constructor arguments");
+	is($instance_created->square_feet, 1000, "instance created with correct constructor arguments");
+}
+
+sub can_call_method_on_instance_returns_ok_and_value : Test(2) {
+	my $statementExecutor = Slim::StatementExecutor->new();
+	my $statement = Slim::Statement->new( {instruction_elements => ["inst_1", "make", "obj_1", 
+		"Test::Slim::PerlNativeOOExamples::House", "3", "1000"]} );
+	$statement->execute($statementExecutor);
+	
+	my $call_statement = Slim::Statement->new( {instruction_elements => ["inst_2", "call", "obj_1", "totalCost", "10"]} );
+	my $response = $call_statement->execute($statementExecutor);
+	is(@$response[0], "inst_2", "instruction id returned as first element");
+	is(@$response[1], "10000", "method return value returned as second element");
+}
+
+sub can_call_method_with_no_return_value_on_instance_and_return_void_string : Test(2) {
+	my $statementExecutor = Slim::StatementExecutor->new();
+	my $statement = Slim::Statement->new( {instruction_elements => ["inst_1", "make", "obj_1", 
+		"Test::Slim::PerlNativeOOExamples::House", "3", "1000"]} );
+	$statement->execute($statementExecutor);
+	
+	my $call_statement = Slim::Statement->new( {instruction_elements => ["inst_2", "call", "obj_1", "setBedrooms", "1"]} );
+	my $response = $call_statement->execute($statementExecutor);
+	is(@$response[0], "inst_2", "instruction id returned as first element");
+	is(@$response[1], "/__VOID__/", "void returned as second element");
 }
 
 1;
