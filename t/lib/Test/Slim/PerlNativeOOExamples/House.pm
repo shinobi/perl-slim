@@ -25,6 +25,12 @@ sub set_bedrooms {
 	return;
 }
 
+sub set_square_feet {
+	my $self = shift;
+	$self->{square_feet} = shift;
+	return;	
+}
+
 sub square_feet {
 	my $self = shift;
 	return $self->{square_feet};

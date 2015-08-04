@@ -39,7 +39,6 @@ Run a server on the port given in the constructor
 
 sub run {
     print "Starting Slim Perl Server on port: $port\n";
-    print (\$connected);
     initialize();
     $socket_handler->handle(\&serve_perl_slim, \$connected);
     print("When does this print?");

@@ -30,7 +30,7 @@ sub execute {
     my $statement_executor = Slim::StatementExecutor->new();
     
     foreach $instruction (@instructions) {
-        print("current instruction in loop", @$instruction, "\n");
+        print("current instruction in loop: ", @$instruction, "\n");
 		my $statement = Slim::Statement->new( {instruction_elements => $instruction} );
 		my $response = $statement->execute($statement_executor);
 		print("Executed statement, response is: ", $response, "\n");

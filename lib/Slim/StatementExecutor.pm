@@ -34,10 +34,17 @@ sub create {
 }
 
 sub call {
+
 	my($self, $instance_id, $method_name, @arguments) = @_;
 	my $instance = $self->instance($instance_id);
+	my $return_value;
+
 	print("Executor retrieved instance by id: ", $instance_id, ", value is: ", $instance, "\n");
-	my $return_value = $instance->$method_name(@arguments);
+	if (!($instance->can($method_name))) {
+		print("Instance does not have method $method_name\n");
+		return "message:NO_METHOD_IN_CLASS $method_name";
+	}
+	$return_value = $instance->$method_name(@arguments);
 	print("Return value is : ", $return_value, "\n");
 	return $return_value;
 }
@@ -56,11 +63,15 @@ sub construct_instance {
 	my($self, $class_name, @constructor_arguments) = @_;
 	print(@constructor_arguments, "\n");
 	print("Instantiating fixture class: ", $class_name, "\n");
+	print("Hello?\n");
     eval {
+        print "in eval\n";
         eval "require $class_name";
+        print "required class name\n";
         my $class_object = $class_name->new(@constructor_arguments);
     }
     or do {
+        print("Execption detected instantiating fixture: ", $@, "\n");
     	throw Slim::FixtureInvocationError("Could not invoke constructor on class $class_name.\n  Exception: $@.");
     }
 }
