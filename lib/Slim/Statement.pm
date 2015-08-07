@@ -24,45 +24,50 @@ Knut Haugen <knuthaug@gmail.com>, Jim Weaver <weaver.je@gmail.com>
 
 sub execute() {
     my($self, $statement_executor) = @_;
-    print("Executing.... command name is ", $self->command_name, "\n");
+    print("Parsing command for execution ", $self->command_name, "\n") if $main::debug;
     switch($self->command_name)
     {
         case "make" {
-            print("In make clause\n");
-            print("Instance id is: ", $self->instance_id, "\n");
-            my $class_name = $self->slim_to_perl_class($self->instruction_element(3));
-            print("Class name is: ", $class_name, "\n");
-            
-            #my @arguments = $statement->get_arguments(4);
-            my @arguments = $self->get_arguments(4);
-            my $arguments_found = scalar (@arguments);
-            print("Arguments Found ", $arguments_found, "\n");
-
-            my $response_string = $statement_executor->create($self->instance_id, $class_name, @arguments);
-            return [$self->instruction_id, $response_string];
+            print("In make clause\n") if $main::debug;
+            return $self->make_instance($statement_executor);
         }
         
         case "call" {
-            print("In call clause\n");
-            return $self->call_method_from_index($statement_executor);
+            print("In call clause\n") if $main::debug;
+            return $self->call_method_on_instance($statement_executor);
         }
     }
 }
 
-sub call_method_from_index() {
-	    my($self, $statement_executor) = @_;
-	    my $slim_method_name = $self->instruction_element(3);
-	    print("Method name unconverted is : ", $slim_method_name, "\n");
-        my $method_name = $self->slim_to_perl_method($slim_method_name);
-        print("Method name to call is: ", $method_name, "\n");
-        my @arguments = $self->get_arguments(4);
-        my $return_value = $statement_executor->call($self->instance_id, $method_name, @arguments);
-        print("Return value is: ", $return_value, "\n");
-        if (!defined($return_value)) {
-            print("Returning void\n");
-        	return [$self->instruction_id, "/__VOID__/"];
-        }
-        return [$self->instruction_id, $return_value];
+sub make_instance() {
+	my($self, $statement_executor) = @_;
+    my $class_name = $self->slim_to_perl_class($self->instruction_element(3));
+    print("Class name for instance to be created is: ", $class_name, "\n") if $main::debug;
+            
+    my @arguments = $self->get_arguments(4);
+    my $arguments_found = scalar (@arguments);
+    print("Number of constructor arguments found: ", $arguments_found, "\n") if $main::debug;
+
+    my $response_string = $statement_executor->create($self->instance_id, $class_name, @arguments);
+    return [$self->instruction_id, $response_string];
+}
+
+sub call_method_on_instance() {
+	my($self, $statement_executor) = @_;
+	my $slim_method_name = $self->instruction_element(3);
+	my $method_name = $self->slim_to_perl_method($slim_method_name);
+	print("Method to be called on instance is: ", $method_name, "\n") if $main::debug;
+        
+	my @arguments = $self->get_arguments(4);
+	print("Arguments retrieved", @arguments, "\n") if $main::debug;
+        
+	my $return_value = $statement_executor->call($self->instance_id, $method_name, @arguments);
+        
+    print("Return value from method call is: ", $return_value, "\n") if $main::debug;
+    if (!defined($return_value)) {
+    	return [$self->instruction_id, "/__VOID__/"];
+    }
+    return [$self->instruction_id, $return_value];
 }
 
 
@@ -75,7 +80,6 @@ sub slim_to_perl_class {
 
 sub slim_to_perl_method {
     my($self, $method_string) = @_;
-    print("Method sting passed in is: ", $method_string, "\n");
     $method_string =~ s|([A-Z])|"_" . lc($1)|eg;
     $method_string;
 }

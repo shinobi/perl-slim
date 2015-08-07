@@ -8,7 +8,6 @@ use Error;
 use Time::HiRes qw(alarm);
 use IO::Socket;
 
-
 has 'port' => (
                is => 'rw', 
                default => 12345,
@@ -56,12 +55,10 @@ Run a socket listening on the port given in the constructor
 
 sub handle { 
     my($self, $action, $connected) = @_;
-    print("*** value of connected is $connected\n");
     $self->action($action);
     $self->socket($self->open_socket() );
  
-    $self->listener_thread(threads->create( 'listen', $self, \$connected));
-    print("finished handle method");
+    $self->listener_thread(threads->create( 'listen', $self, $connected));
 }
 
 sub pending_sessions {
@@ -87,31 +84,23 @@ sub close_all {
 
 sub listen {
     my($self, $connected) = @_;
-    print("In listen value of connected is $connected\n");
     while ( my $connection = $self->socket()->accept() ) {
-         print("Listening on socket....\n");
-         my $peer_address = $connection->peerport();
-         print "Accepted New Client Connection From : $peer_address\n";
-
-        threads->create('handle_connection', $self, $connection, $connected);
+    	print("Accepted connection on socket.\n") if $main::debug;
+   		my $peer_address = $connection->peerport();
+     	threads->create('handle_connection', $self, $connection, $connected);
     }
-    print("Finished listen loop\n");
 }
 
 sub handle_connection {
     my($self, $connection, $connected) = @_;
-    print("Invoking handler action....\n");
     my $return = $self->action->($self, $connection);
-    print("Done handler action, closing connection....\n");
     $connection->close;
-    print("Setting connected, which is $connected, to value 0\n");
     $$connected = 0;
-    print("Finished handle_connection\n");
+    print("Finished handle_connection, closed connection.\n") if $main::debug;;
     return $return; 
 }
 
 sub open_socket {
-    print("Opening socket....\n");
     my($self) = @_;
     my $socket = IO::Socket::INET->new(LocalPort => $self->port,
                                        LocalHost => 'localhost',

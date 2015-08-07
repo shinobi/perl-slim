@@ -5,12 +5,10 @@ use warnings;
 use base qw(Test::Class);
 
 use Test::More;
-#use Test::Exception;
 use Time::HiRes qw(sleep);
 use Carp;
 use IO::Socket;
 
-#use Slim::Server;
 use Slim::SocketHandler;
 use threads;
 use threads::shared;

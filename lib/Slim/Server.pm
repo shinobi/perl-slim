@@ -1,17 +1,21 @@
+our $debug = 0;
+
 package Slim::Server;
 
 use Moose;
+use threads;
+use threads::shared;
 use namespace::autoclean;
 use Error;
 use Time::HiRes qw(alarm);
 
-use SocketHandler;
+use Slim::SocketHandler;
 use Slim::List::Deserializer;
 use Slim::List::Serializer;
-use ListExecutor;
-use constant DEBUG => 1;
+use Slim::ListExecutor;
 my $port = $ARGV[0];
-my $connected = 1;
+my $debug_string = $ARGV[1];
+my $connected : shared = 1;
 my $socket_handler;
 my $executor;
 				   
@@ -38,28 +42,36 @@ Run a server on the port given in the constructor
 =cut
 
 sub run {
-    print "Starting Slim Perl Server on port: $port\n";
+	process_command_line_args();
+    print("Starting Slim Perl Server on port: $port, debug is: ",  $main::debug, "\n");
     initialize();
     $socket_handler->handle(\&serve_perl_slim, \$connected);
-    print("When does this print?");
-    
     while ($connected)
     {
         sleep(0.1);
     }
+    print("Shutting down Slim Perl Server\n") if $main::debug;
+}
+
+sub process_command_line_args {
+	foreach my $arg(@ARGV) {
+		if ("DEBUG" eq $arg) {
+			$debug = 1;
+		}
+		else {
+			$port = $arg;
+		}
+	}
 }
 
 sub initialize {
-    $socket_handler = new Slim::SocketHandler({port => $port});
-    $executor = new Slim::ListExecutor();
+    $socket_handler = Slim::SocketHandler->new({port => $port});
+    $executor = new Slim::ListExecutor;
 }
 
 sub serve_perl_slim {
 	my ($self,$conn) = @_;
-	print $self;
     print $conn "Slim -- V1.0\n";
-    print ($self);
-    print "Header sent to Fitnesse, awaiting data…\n" if DEBUG;
                 
     my $said_bye = 0;
     while (!$said_bye) {
@@ -70,22 +82,21 @@ sub serve_perl_slim {
         $conn->recv($command, 1);  #skip colon following length of command
         $conn->recv($command, $command_length);
         
-        print("Command received from fitnesse of length: $command_length, payload: \n$command\n") if DEBUG;
+        print("Command received from fitnesse of length: $command_length, payload: \n$command\n") if $main::debug;
 
         if (!($command eq "bye")) {
 			my @instructions = new Slim::List::Deserializer()->deserialize($command);
        		my @responses = new Slim::ListExecutor()->execute(@instructions);
-            print("Responses array to send back to fitnesse: @responses\n") if DEBUG;
+            print("Responses array to send back to fitnesse: @responses\n") if $main::debug;
             my $serializedResponses = new Slim::List::Serializer()->serialize(@responses);
-            print("Sending responses back to fitnesse: $serializedResponses") if DEBUG;
+            print("Sending responses back to fitnesse: $serializedResponses") if $main::debug;
             print $conn sprintf("%06d:%s", length($serializedResponses), $serializedResponses);
        	}
         else {
-      		print("Received bye from fitnesse, exiting listen loop\n") if DEBUG;;
+      		print("Received bye from fitnesse, exiting listen loop\n") if $main::debug;
           	$said_bye = 1;
       	}
 	}
-	print("Exited while loop for commands from fitnesse\n") if DEBUG;
 	return;
 }
 

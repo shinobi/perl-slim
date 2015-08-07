@@ -22,26 +22,27 @@ sub execute {
     my ($self, @instructions) = @_;
     my @responses;
     
-    print "Executing list of instructions of size:" . scalar @instructions;
-    print "\n";
+    print ("Executing list of instructions of size: ", scalar @instructions, "\n") if $main::debug;
     
     my $instruction;
     my $index = 0;
     my $statement_executor = Slim::StatementExecutor->new();
     
     foreach $instruction (@instructions) {
-        print("current instruction in loop: ", @$instruction, "\n");
-		my $statement = Slim::Statement->new( {instruction_elements => $instruction} );
-		my $response = $statement->execute($statement_executor);
-		print("Executed statement, response is: ", $response, "\n");
-		print("Response as array is: ", @$response, "\n");
+        my $response = $self->execute_instruction($instruction, $statement_executor);
         $responses[$index] = $response;  
-        print("Response just added to responses at index $index, value at index is: ", $responses[$index], "\n");      
         $index++;
     }
-    
-    print("About to return, responses is: ", @responses, "\n");
     return @responses;
+}
+
+sub execute_instruction {
+	my ($self, $instruction, $statement_executor) = @_;
+	print("Carrying out instruction: ", @$instruction, "\n") if $main::debug;
+	my $statement = Slim::Statement->new( {instruction_elements => $instruction} );
+	my $response = $statement->execute($statement_executor);
+	print("Executed instruction, response to return to fitnesse is: ", @$response, "\n") if $main::debug;
+	return $response;
 }
 
 no Moose;
