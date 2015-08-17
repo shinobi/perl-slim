@@ -1,46 +1,34 @@
-package Slim::SampleFixtures::ShouldIBuyMilk;
+package Slim::SampleFixtures::InitializeWithCars;
 
 use warnings;
 use strict;
 
-use Slim::SampleCodeUnderTest::MilkPurchaseCalculator;
-
 sub new {
 	my $class = shift;
 	my $self = {
-		cash_in_wallet => undef, 
-		credit_card => undef,
-		pints_of_milk_remaining => undef,
-		milk_calculator => undef
+		vin => undef, 
+		description => undef,
+		daily_rate => undef
 	};
 	
 	bless($self, $class);
 	return($self);
 }
 
-sub set_cash_in_wallet {
+sub set_vin {
 	my $self = shift;
-	$self->{cash_in_wallet} = shift;
-	return;
+	$self->{vin} = shift;
 }
 
-sub set_credit_card {
+sub set_description {
 	my $self = shift;
-	$self->{credit_card} = shift;
-	return;	
+	$self->{description} = shift;
 }
 
-sub set_pints_of_milk_remaining {
+sub set_daily_rate {
 	my $self = shift;
-	$self->{pints_of_milk_remaining} = shift;
-	return;	
+	$self->{daily_rate} = shift;
 }
-
-sub go_to_store {
-	my $self = shift;
-	return ($self->{milk_calculator})->go_to_store;
-}
-
 
 # The following functions are optional for decision tables.  If they aren't declared they'll be ignored by Fitnesse.
 
@@ -50,7 +38,7 @@ sub table() {
 }
 
 sub begin_table() {
-	# begin_table is called once, just after the table method, and just before the rows are processed. This is for setup and initialization stuff.
+	# beginTable is called once, just after the table method, and just before the rows are processed. This is for setup and initialization stuff.
 }
 
 sub reset() {
@@ -61,12 +49,12 @@ sub execute() {
 	# execute is called once for each row just after all the set functions have been called, and just before 
 	#   the first output function (if any) are called.
 	my $self = shift;
-	print("execute method of ShouldIBuyMilk fixture called by fitnesse\n");
-	$self->{milk_calculator} = Slim::SampleCodeUnderTest::MilkPurchaseCalculator->new($self->{cash_in_wallet}, $self->{credit_card}, $self->{pints_of_milk_remaining});
+	print("execute method of Initialze Cars fixture called by fitnesse - here is where we can add an individual car to the system\n");
+	#$self->{milk_calculator} = Slim::SampleCodeUnderTest::MilkPurchaseCalculator->new($self->{cash_in_wallet}, $self->{credit_card}, $self->{pints_of_milk_remaining});
 }
 
 sub end_table() {
-	# end_table is called once, just after the last row has been processed. 
+	# endTable is called once, just after the last row has been processed. 
 	#   It's the last function to be called by the table. Use it for cleanup and closedowns.
 }
 

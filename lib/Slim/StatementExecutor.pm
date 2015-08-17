@@ -3,7 +3,7 @@ package Slim::StatementExecutor;
 use Moose;
 use namespace::autoclean;
 use Error;
-use Slim::FixtureInvocationError;
+use Slim::SlimError;
 
 
 has 'fixture_instances' =>	(
@@ -29,6 +29,10 @@ sub create {
 	#returning exception for fitnesse not implemented yet.
 	my($self, $instance_id, $class_name, @constructor_arguments) = @_;
 	my $instance = $self->construct_instance($class_name, @constructor_arguments);
+	if (!defined($instance))
+	{
+		return "__EXCEPTION__:message:<<COULD_NOT_INVOKE_CONSTRUCTOR $class_name>>";
+	}
 	$self->set_instance($instance_id, $instance);
 	return "OK";
 }
@@ -36,12 +40,13 @@ sub create {
 sub call {
 	my($self, $instance_id, $method_name, @arguments) = @_;
 	my $instance = $self->instance($instance_id);
-	my $return_value;
-
+	return "__EXCEPTION__:message:<<NO INSTANCE $instance_id>>" if !defined($instance);
+	
 	print("Executor retrieved instance by id: ", $instance_id, ", value is: ", $instance, "\n") if $main::debug;
+	
 	if (!($instance->can($method_name))) {
 		print("Instance does not have method $method_name\n") if $main::debug;
-		return "message:NO_METHOD_IN_CLASS $method_name";
+		return "__EXCEPTION__:message:<<NO_METHOD_IN_CLASS $method_name $instance>>";
 	}
 	return $instance->$method_name(@arguments);
 }
@@ -65,7 +70,7 @@ sub construct_instance {
     }
     or do {
         print("Exception detected instantiating fixture: ", $@, "\n") if $main::debug;
-    	throw Slim::FixtureInvocationError("Could not invoke constructor on class $class_name.\n  Exception: $@.");
+        return undef;
     }
 }
 

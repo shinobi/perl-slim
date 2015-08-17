@@ -68,6 +68,16 @@ sub can_call_method_with_no_return_value : Test(1) {
 	is($result, undef, "method with no return value called, returns undef as result");
 }
 
+sub can_call_method_that_returns_a_list : Test(1) {
+	my @constructor_args = (5, 1000);
+	$statementExecutor->create("id_1", "Test::Slim::PerlNativeOOExamples::House", @constructor_args);
+	
+	my @method_args = ();
+	my $result = $statementExecutor->call("id_1", "get_as_list_of_columns", @method_args);
+	is(ref $result, 'ARRAY', "Executor returns a reference to an array.");
+
+}
+
 
 
 1;

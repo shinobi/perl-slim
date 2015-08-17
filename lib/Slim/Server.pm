@@ -75,6 +75,7 @@ sub serve_perl_slim {
                 
     my $said_bye = 0;
     while (!$said_bye) {
+        print("Hello Cruel World\n");
     	my $command_length = "length of command";
         my $command = "command data";
         
@@ -85,10 +86,7 @@ sub serve_perl_slim {
         print("Command received from fitnesse of length: $command_length, payload: \n$command\n") if $main::debug;
 
         if (!($command eq "bye")) {
-			my @instructions = new Slim::List::Deserializer()->deserialize($command);
-       		my @responses = new Slim::ListExecutor()->execute(@instructions);
-            print("Responses array to send back to fitnesse: @responses\n") if $main::debug;
-            my $serializedResponses = new Slim::List::Serializer()->serialize(@responses);
+            my $serializedResponses = process_command($command);
             print("Sending responses back to fitnesse: $serializedResponses") if $main::debug;
             print $conn sprintf("%06d:%s", length($serializedResponses), $serializedResponses);
        	}
@@ -98,6 +96,14 @@ sub serve_perl_slim {
       	}
 	}
 	return;
+}
+
+sub process_command {
+	my $command = shift;
+	my @instructions = new Slim::List::Deserializer()->deserialize($command);
+    my @responses = new Slim::ListExecutor()->execute(@instructions);
+    my $serializedResponses = new Slim::List::Serializer()->serialize(@responses);
+    return $serializedResponses;
 }
 
 =back

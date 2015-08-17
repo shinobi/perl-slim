@@ -67,4 +67,25 @@ sub can_call_method_with_no_return_value_on_instance_and_return_void_string : Te
 	is(@$response[1], "/__VOID__/", "void returned as second element");
 }
 
+sub can_return_exception_if_unrecognized_command_supplied : Test(2) {
+	my $statementExecutor = Slim::StatementExecutor->new();
+	my $statement = Slim::Statement->new( {instruction_elements => ["inst_1", "implode", "obj_1", 
+		"Test::Slim::PerlNativeOOExamples::House", "3", "1000"]} );
+	my $response = $statement->execute($statementExecutor);
+	is(@$response[0], "inst_1", "instruction id returned as first element");
+	is(@$response[1], "message:<<INVALID_STATEMENT: implode.>>", "Unrecognized command exception is returned as second element.");
+}
+
+sub can_call_method_that_returns_a_list : Test(2) {
+	my $statementExecutor = Slim::StatementExecutor->new();
+	my $statement = Slim::Statement->new( {instruction_elements => ["inst_1", "make", "obj_1", 
+		"Test::Slim::PerlNativeOOExamples::House", "3", "1000"]} );
+	$statement->execute($statementExecutor);
+	
+	my $call_statement = Slim::Statement->new( {instruction_elements => ["inst_2", "call", "obj_1", "get_as_list_of_columns"]} );
+	my $response = $call_statement->execute($statementExecutor);
+	is(@$response[0], "inst_2", "instruction id returned as first element");
+	is(ref @$response[1], 'ARRAY', "response to instruction is an array reference.");
+}
+
 1;

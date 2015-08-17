@@ -4,6 +4,8 @@ use Moose;
 use Switch;
 use namespace::autoclean;
 
+use constant EXCEPTION_TAG => "";
+
 has 'instruction_elements' =>	(
                    					is => 'ro',
                    					isa => 'ArrayRef',
@@ -25,22 +27,41 @@ Knut Haugen <knuthaug@gmail.com>, Jim Weaver <weaver.je@gmail.com>
 sub execute() {
     my($self, $statement_executor) = @_;
     print("Parsing command for execution ", $self->command_name, "\n") if $main::debug;
-    switch($self->command_name)
-    {
-        case "make" {
-            print("In make clause\n") if $main::debug;
-            return $self->make_instance($statement_executor);
-        }
-        
-        case "call" {
-            print("In call clause\n") if $main::debug;
-            return $self->call_method_on_instance($statement_executor);
-        }
-    }
+    eval {
+        $self->handle_command($statement_executor);
+	}
+	or do {
+		my $error = $@;
+		print("Exception detected during command excecution: ", $error, "\n") if $main::debug;
+		if ($error->isa('Slim::SlimError')) {
+			return [$self->instruction_id, EXCEPTION_TAG . "message:<<NO_INSTANCE>>"];
+		}
+		return [$self->instruction_id, "message:<<UNEXPECTED_ERROR: " . $error . ".>>"];
+	}
+}
+
+sub handle_command() {
+	my($self, $statement_executor) = @_;
+	switch($self->command_name)
+	{
+		case "make" {
+	    	print("In make clause\n") if $main::debug;
+	        return $self->make_instance($statement_executor);
+	    }
+	        
+	    case "call" {
+	    	print("In call clause\n") if $main::debug;
+	       	return $self->call_method_on_instance($statement_executor);
+	   	}
+	    else {
+	    	return [$self->instruction_id, EXCEPTION_TAG . "message:<<INVALID_STATEMENT: " . $self->command_name . ".>>"];
+	    }
+	}   
 }
 
 sub make_instance() {
 	my($self, $statement_executor) = @_;
+
     my $class_name = $self->slim_to_perl_class($self->instruction_element(3));
     print("Class name for instance to be created is: ", $class_name, "\n") if $main::debug;
             
@@ -63,9 +84,14 @@ sub call_method_on_instance() {
         
 	my $return_value = $statement_executor->call($self->instance_id, $method_name, @arguments);
         
-    print("Return value from method call is: ", $return_value, "\n") if $main::debug;
     if (!defined($return_value)) {
     	return [$self->instruction_id, "/__VOID__/"];
+    }
+    if (ref $return_value eq 'ARRAY') {
+        print("Array returned from method call.\n");
+    }
+    else {
+    	print("Return value from method call is: ", $return_value, "\n") if $main::debug;
     }
     return [$self->instruction_id, $return_value];
 }

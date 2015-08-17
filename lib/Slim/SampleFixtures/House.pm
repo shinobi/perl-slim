@@ -42,6 +42,14 @@ sub total_cost {
 	return ($self->{square_feet}) * $cost_per_square_foot;
 }
 
+sub get_as_list_of_columns {
+	my $self = shift;
+	my @list_of_columns;
+	push(@list_of_columns, ["bedrooms", $self->bedrooms]);
+	push(@list_of_columns, ["square feet", $self->square_feet]);
+	return \@list_of_columns;
+}
+
 1;
 
 

@@ -39,6 +39,22 @@ sub can_serialize_nested_list : Test(1) {
       "nested arrays creates nested response");
 }
 
+sub can_serialize_doubly_nested_list : Test(1) {
+	my @list;
+	my @query_rows;
+	my @query_row1;
+	my @query_column1 = ["color", "red"];
+	my @query_column2 = ["price", "100"];
+	push(@query_row1, \@query_column1);
+	push(@query_row1, \@query_column2);
+	push(@query_rows, \@query_row1);
+	
+	push(@list, ["inst1", "OK"]);
+	push(@list, ["inst2", \@query_rows]);
+	is( $serializer->serialize( @list), "[000002:000032:[000002:000005:inst1:000002:OK:]:000172:[000002:000005:inst2:000142:[000001:000125:[000002:000050:[000001:000033:[000002:000005:color:000003:red:]:]:000050:[000001:000033:[000002:000005:price:000003:100:]:]:]:]:]:]", 
+      "nested arrays creates nested response")
+}
+
 
 sub can_serialize_a_nonstring_element_list : Test(1) {
     @list = (1);
