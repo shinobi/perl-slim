@@ -1,12 +1,5 @@
 package Slim::List::Deserializer;
 
-use Moose;
-use namespace::autoclean;
-use Error;
-use Slim::SyntaxError;
-use Text::CharWidth qw(mbswidth);
-use Time::HiRes qw(alarm);
-
 =pod
 
 =head1 NAME 
@@ -18,19 +11,6 @@ Slim::List::Deserializer - Deserialization of strings
 Knut Haugen <knuthaug@gmail.com>
 
 =cut
-
-has 'position' => (
-                   is => 'rw', 
-                   default => 1,
-                   isa => 'Int',
-                  );
-
-
-has 'chars' => (
-                is => 'rw',
-                isa => 'ArrayRef[Str]',
-               );
-
 
 our $ENC_LENGTH = 6;
 our $TIMEOUT = 1.0;
@@ -45,14 +25,60 @@ deserialize string representation to list structure.
 
 =cut
 
+sub new {
+	my $class = shift;
+	my @chars;
+	my $self = {
+		position => 1,
+		chars => @chars
+	};
+	bless($self, $class);
+	load_char_width_library();
+	return($self);
+}
+
+sub load_char_width_library {
+	if ($main::pure_perl_charwidth) {
+		require Text::CharWidth::PurePerl;
+		Text::CharWidth::PurePerl->import(qw(mbswidth));
+	}
+	else
+	{
+		require Text::CharWidth;
+		Text::CharWidth->import(qw(mbswidth));
+	}
+}
+
+sub position {
+	my $self = shift;
+	return $self->{position};
+}
+
+sub set_position {
+	my $self = shift;
+	$self->{position} = shift;
+	return;
+}
+
+sub chars {
+	my $self = shift;
+	return $self->{chars};
+}
+
+sub set_chars {
+	my $self = shift;
+	$self->{chars} = shift;
+	return;
+}
+
 sub deserialize {
     my($self, $string) = @_;
 
-    throw Slim::SyntaxError("null strings not allowed") if !$string;
-    throw Slim::SyntaxError("String is not started with [ character") if $string !~ /^\[/;
-    throw Slim::SyntaxError("String does not end in ] character") if $string !~ /\]$/;
+    die("null strings not allowed") if !$string;
+    die("String is not started with [ character") if $string !~ /^\[/;
+    die("String does not end in ] character") if $string !~ /\]$/;
 
-    $self->chars([split //, $string ]);
+    $self->set_chars([split //, $string ]);
     $self->deserialize_string;    
 }
 
@@ -65,7 +91,7 @@ sub deserialize {
 sub deserialize_string {
     my($self) = @_;
 
-    $self->position(1);
+    $self->set_position(1);
     my $num_elements = $self->get_length;
 
     return () if ($num_elements == 0);
@@ -92,9 +118,9 @@ sub handle_nested_lists {
     my($self, $element) = @_;
     
     if ($element =~ /^\[/) {
-        $self->position($self->position + 1);
+        $self->set_position($self->position + 1);
         my @nested_elements = new Slim::List::Deserializer->deserialize($element); 
-        $self->position($self->position - 1);
+        $self->set_position($self->position - 1);
         return \@nested_elements;
     }
     
@@ -116,11 +142,10 @@ sub get_multibyte_element{
     my $char = join("", @{$self->chars()}[ $check_pos .. $check_pos ]);
 
     unless ( $char eq ':') {
-        throw Slim::SyntaxError("List Termination Character Not found in " . 
-                                $self->get_char_slice($element_length+1));
+        die("List Termination Character Not found in " . $self->get_char_slice($element_length+1));
     }
 
-    $self->position($self->position + $element_length + 1);
+    $self->set_position($self->position + $element_length + 1);
     
     $element;
 }
@@ -158,7 +183,7 @@ sub read_with_timeout {
     };
 
     if ($@ =~ /Timeout in reading string/) {
-        throw Slim::SyntaxError("Multibyte characters detected in string");
+        die("Multibyte characters detected in string");
     }
 
     ($length_in_bytes, $element);
@@ -175,13 +200,9 @@ sub get_char_slice{
 sub get_length {
     my($self) = @_;
     my $value = $self->get_char_slice($ENC_LENGTH);
-    $self->position( $self->position + ($ENC_LENGTH + 1));
+    $self->set_position( $self->position + ($ENC_LENGTH + 1));
 
     $value + 0;
 }
-
-no Moose;
-
-__PACKAGE__->meta->make_immutable();
 
 1;

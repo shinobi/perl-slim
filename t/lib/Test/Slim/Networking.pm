@@ -19,7 +19,7 @@ my $connections :shared;
 my $port = 12345;
 
 sub setup_fixture : Test(setup) {
-    $socket_handler = new Slim::SocketHandler({ port => $port });
+    $socket_handler = new Slim::SocketHandler($port);
     $connections = 0;
 }
 

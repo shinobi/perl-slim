@@ -1,23 +1,18 @@
 our $debug = 0;
+our $pure_perl_charwidth = 0;
 
 package Slim::Server;
 
-use Moose;
 use threads;
 use threads::shared;
-use namespace::autoclean;
-use Error;
-use Time::HiRes qw(alarm);
 
 use Slim::SocketHandler;
 use Slim::List::Deserializer;
 use Slim::List::Serializer;
 use Slim::ListExecutor;
-my $port = $ARGV[0];
-my $debug_string = $ARGV[1];
+my $port;
 my $connected : shared = 1;
 my $socket_handler;
-my $executor;
 				   
 =pod
 
@@ -58,6 +53,9 @@ sub process_command_line_args {
 		if ("DEBUG" eq $arg) {
 			$debug = 1;
 		}
+		elsif ("PERL_CHARWIDTH" eq $arg) {
+			$pure_perl_charwidth = 1;
+		}
 		else {
 			$port = $arg;
 		}
@@ -65,8 +63,7 @@ sub process_command_line_args {
 }
 
 sub initialize {
-    $socket_handler = Slim::SocketHandler->new({port => $port});
-    $executor = new Slim::ListExecutor;
+    $socket_handler = Slim::SocketHandler->new($port);
 }
 
 sub serve_perl_slim {
@@ -109,11 +106,6 @@ sub process_command {
 =back
 
 =cut
-
-
-no Moose;
-
-__PACKAGE__->meta->make_immutable();
 
 run();
 1;

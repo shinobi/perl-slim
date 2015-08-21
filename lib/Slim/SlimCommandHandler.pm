@@ -1,6 +1,5 @@
 package Slim::SlimCommandHandler;
 
-use namespace::autoclean;
 
 use Slim::List::Deserializer;
 use Slim::List::Serializer;

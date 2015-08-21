@@ -1,15 +1,8 @@
 package Slim::Statement;
 
-use Moose;
 use Switch;
-use namespace::autoclean;
 
 use constant EXCEPTION_TAG => "";
-
-has 'instruction_elements' =>	(
-                   					is => 'ro',
-                   					isa => 'ArrayRef',
-                   				);
 
 =pod
 
@@ -23,6 +16,15 @@ Knut Haugen <knuthaug@gmail.com>, Jim Weaver <weaver.je@gmail.com>
 
 =cut
 
+sub new() {
+	my $class = shift;
+	my $self = {
+		instruction_elements => shift
+	};
+	bless($self, $class);
+	return($self);
+}
+
 
 sub execute() {
     my($self, $statement_executor) = @_;
@@ -33,9 +35,6 @@ sub execute() {
 	or do {
 		my $error = $@;
 		print("Exception detected during command excecution: ", $error, "\n") if $main::debug;
-		if ($error->isa('Slim::SlimError')) {
-			return [$self->instruction_id, EXCEPTION_TAG . "message:<<NO_INSTANCE>>"];
-		}
 		return [$self->instruction_id, "message:<<UNEXPECTED_ERROR: " . $error . ".>>"];
 	}
 }
@@ -45,13 +44,21 @@ sub handle_command() {
 	switch($self->command_name)
 	{
 		case "make" {
-	    	print("In make clause\n") if $main::debug;
+	    	print("Performing make instruction.\n") if $main::debug;
 	        return $self->make_instance($statement_executor);
 	    }
 	        
 	    case "call" {
-	    	print("In call clause\n") if $main::debug;
-	       	return $self->call_method_on_instance($statement_executor);
+	    	print("Performing call method instruction.\n") if $main::debug;
+	       	return $self->call_method_on_instance($statement_executor, 3);
+	   	}
+	   	case "callAndAssign" {
+	   		print("Performing call and assign instruction.\n") if $main::debug;
+	   		my $symbol_name = $self->instruction_element(2);
+	   		my $result =  $self->call_method_on_instance($statement_executor, 4);
+	   		print("Assigning symbol ", $symbol_name, " to result value of method: ", @$result[1], ".\n") if $main::debug;
+	   		$statement_executor->add_symbol($symbol_name, @$result[1]);
+	   		return $result;
 	   	}
 	    else {
 	    	return [$self->instruction_id, EXCEPTION_TAG . "message:<<INVALID_STATEMENT: " . $self->command_name . ".>>"];
@@ -74,12 +81,12 @@ sub make_instance() {
 }
 
 sub call_method_on_instance() {
-	my($self, $statement_executor) = @_;
-	my $slim_method_name = $self->instruction_element(3);
+	my($self, $statement_executor, $start_index) = @_;
+	my $slim_method_name = $self->instruction_element($start_index);
 	my $method_name = $self->slim_to_perl_method($slim_method_name);
 	print("Method to be called on instance is: ", $method_name, "\n") if $main::debug;
         
-	my @arguments = $self->get_arguments(4);
+	my @arguments = $self->get_arguments($start_index + 1);
 	print("Arguments retrieved", @arguments, "\n") if $main::debug;
         
 	my $return_value = $statement_executor->call($self->instance_id, $method_name, @arguments);
@@ -112,7 +119,7 @@ sub slim_to_perl_method {
 
 sub instruction_element() {
 	my($self, $index) = @_;
-	return $self->instruction_elements()->[$index];
+	return $self->{instruction_elements}->[$index];
 }
 
 sub instruction_id {
@@ -127,16 +134,16 @@ sub command_name {
 
 sub instance_id {
 	my($self) = @_;
+	if ("callAndAssign" eq $self->command_name) {
+		return $self->instruction_element(3);
+	}
 	return $self->instruction_element(2);
 }
 
 sub get_arguments() {
 	my($self, $from_index) = @_;
-	my @temp = @{$self->instruction_elements()};
+	my @temp = @{$self->{instruction_elements}};
 	return @temp[$from_index..$#temp];
 }
-
-no Moose;
-__PACKAGE__->meta->make_immutable();
 
 1;

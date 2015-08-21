@@ -2,6 +2,6 @@
 
 use lib "t/lib";
 use lib "../lib";
-use Test::Slim::SimpleThreadingTest;
+use Test::Slim::SymbolHandlingTests;
 
 Test::Class->runtests();

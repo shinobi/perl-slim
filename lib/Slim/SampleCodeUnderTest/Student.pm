@@ -6,6 +6,7 @@ use strict;
 sub new {
 	my $class = shift;
 	my $self = {
+		id => shift,
 		name => shift, 
 		school_year => shift,
 		age => shift
@@ -13,6 +14,16 @@ sub new {
 	
 	bless($self, $class);
 	return($self);
+}
+
+sub id {
+	my $self = shift;
+	return $self->{id};
+}
+
+sub set_id {
+	my $self = shift;
+	$self->{id} = shift;
 }
 
 sub name {

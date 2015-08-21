@@ -1,16 +1,5 @@
 package Slim::StatementExecutor;
 
-use Moose;
-use namespace::autoclean;
-use Error;
-use Slim::SlimError;
-
-
-has 'fixture_instances' =>	(
-                   				is => 'ro',
-                   				default => sub { {} }, 
-                   				isa => 'HashRef[Object]',
-                   			);
 
 =pod
 
@@ -24,9 +13,16 @@ Jim Weaver <weaver.je@gmail.com>
 
 =cut
 
+sub new {
+	my $class = shift;
+	my $self = {};
+	$self->{fixture_instances} = { };
+	$self->{symbols} = { };
+	bless($self, $class);
+	return($self);
+}
+
 sub create {
-	#symbol support and lib creation not implemented yet, just class instantiation
-	#returning exception for fitnesse not implemented yet.
 	my($self, $instance_id, $class_name, @constructor_arguments) = @_;
 	my $instance = $self->construct_instance($class_name, @constructor_arguments);
 	if (!defined($instance))
@@ -37,18 +33,29 @@ sub create {
 	return "OK";
 }
 
+sub fixture_instances {
+	my($self) = shift;
+	return $self->{fixture_instances};
+}
+
+sub symbols {
+	my($self) = shift;
+	return $self->{symbols};
+}
+
 sub call {
 	my($self, $instance_id, $method_name, @arguments) = @_;
 	my $instance = $self->instance($instance_id);
 	return "__EXCEPTION__:message:<<NO INSTANCE $instance_id>>" if !defined($instance);
 	
 	print("Executor retrieved instance by id: ", $instance_id, ", value is: ", $instance, "\n") if $main::debug;
-	
+
 	if (!($instance->can($method_name))) {
 		print("Instance does not have method $method_name\n") if $main::debug;
 		return "__EXCEPTION__:message:<<NO_METHOD_IN_CLASS $method_name $instance>>";
 	}
-	return $instance->$method_name(@arguments);
+	my @args_with_symbols_replaced = $self->replace_symbols_in_array(@arguments);
+	return $instance->$method_name(@args_with_symbols_replaced);
 }
 
 sub set_instance {
@@ -66,15 +73,75 @@ sub construct_instance {
     eval {
         print("Requiring class name $class_name\n") if $main::debug;
         eval "require $class_name";
-        my $class_object = $class_name->new(@constructor_arguments);
+        my @args_with_symbols_replaced = $self->replace_symbols_in_array(@constructor_arguments);
+        my $class_object = $class_name->new(@args_with_symbols_replaced);
     }
     or do {
-        print("Exception detected instantiating fixture: ", $@, "\n") if $main::debug;
+        print("Exception detected instantiating fixture: ", $@, "\n");
         return undef;
     }
 }
 
-no Moose;
-__PACKAGE__->meta->make_immutable();
+sub add_symbol {
+	my($self, $symbol_name, $symbol_value) = @_;
+	print("Setting symbol $symbol_name to value $symbol_value.\n") if $main::debug;
+	$self->symbols->{$symbol_name} = $symbol_value;
+}
+
+sub get_symbol_value {
+	my($self, $symbol_name) = @_;
+	return $self->symbols->{$symbol_name};
+}
+
+# $symbolname is format from fitnesse
+sub acquire_symbol {
+	my($self, $symbol_from_fitnesse) = @_;
+	my $symbol_name = substr($symbol_from_fitnesse, 1, (length $symbol_from_fitnesse));
+	my $symbol_value = $self->get_symbol_value($symbol_name);
+	return $symbol_value if defined $symbol_value;
+	return $symbol_name;
+}
+
+sub is_a_symbol {
+	my($self, $text) = @_;
+	if ($text =~ /\A\$\w*\z/) {
+		return 1;
+	}
+	return 0;
+}
+
+sub replace_symbol_in_text_words {
+	my($self, $text) = @_;
+	
+	if ($self->is_a_symbol($text)) {
+		return $self->acquire_symbol($text);
+	}
+	else {
+		return $self->replace_symbols_word_by_word_in_text($text);
+	}
+}
+
+sub replace_symbols_word_by_word_in_text {
+	my($self, $text) = @_;
+	my $located_symbol;
+	my $symbol_value;
+	while ($text =~ /(\$\w*)/g) {
+		$located_symbol = $1;
+		$symbol_value = $self->acquire_symbol($located_symbol);
+		print("Found symbol: ", $located_symbol, ", replacing with value: ", $symbol_value, "\n") if $main::debug;
+		$text =~ s/\Q$located_symbol/$symbol_value/;
+	}
+	return $text;
+}
+
+sub replace_symbols_in_array {
+	my($self, @text_array) = @_;
+	my @result_array;
+		
+    foreach $text (@text_array) {
+        push(@result_array, $self->replace_symbol_in_text_words($text));
+    }
+    return @result_array;
+}
 
 1;

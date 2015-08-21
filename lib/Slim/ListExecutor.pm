@@ -1,8 +1,5 @@
 package Slim::ListExecutor;
 
-use Moose;
-use namespace::autoclean;
-
 use Slim::StatementExecutor;
 use Slim::Statement;
 
@@ -17,6 +14,13 @@ Slim::ListExecutor - process a list of instructions from fitnesse
 Jim Weaver <weaver.je@gmail.com>
 
 =cut
+
+sub new {
+	my $class = shift;
+	my $self = {};
+	bless($self, $class);
+	return($self);
+}
 
 sub execute {
     my ($self, @instructions) = @_;
@@ -39,13 +43,10 @@ sub execute {
 sub execute_instruction {
 	my ($self, $instruction, $statement_executor) = @_;
 	print("Carrying out instruction: ", @$instruction, "\n") if $main::debug;
-	my $statement = Slim::Statement->new( {instruction_elements => $instruction} );
+	my $statement = Slim::Statement->new($instruction);
 	my $response = $statement->execute($statement_executor);
 	print("Executed instruction, response to return to fitnesse is: ", @$response, "\n") if $main::debug;
 	return $response;
 }
-
-no Moose;
-__PACKAGE__->meta->make_immutable();
 
 1;

@@ -10,7 +10,8 @@ sub new {
 	my $self = {
 		name => undef, 
 		school_year => undef,
-		age => undef
+		age => undef,
+		student_id => undef
 	};
 	
 	bless($self, $class);
@@ -32,11 +33,16 @@ sub set_age {
 	$self->{age} = shift;
 }
 
+sub student_id {
+	my $self = shift;
+	return $self->{student_id};
+}
+#
 sub execute() {
 	my $self = shift;
-	Slim::SampleCodeUnderTest::StudentEnrollmentManager::add_student($self->{name}, $self->{school_year}, $self->{age});
+	$self->{student_id} = Slim::SampleCodeUnderTest::StudentEnrollmentManager::add_student($self->{name}, $self->{school_year}, $self->{age});
 	my @current_students = Slim::SampleCodeUnderTest::StudentEnrollmentManager::get_all_students();
-	print("**** Added Student ****, count of students is ", scalar @current_students, "\n");
+	print("**** Added Student with Id : ", $self->{student_id}, " ****, count of students is ", scalar @current_students, "\n");
 }
 
 1;
