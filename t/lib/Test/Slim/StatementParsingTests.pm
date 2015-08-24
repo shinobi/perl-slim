@@ -89,7 +89,7 @@ sub can_call_method_and_assign_result_to_symbol : Test(3) {
 	my $statement = Slim::Statement->new( ["inst_1", "make", "obj_1", "Test::Slim::PerlNativeOOExamples::House", "3", "1000"] );
 	$statement->execute($statementExecutor);
 	
-	my $call_statement = Slim::Statement->new( ["inst_2", "callAndAssign", "current_cost", "obj_1", "totalCost", "10"] );
+	my $call_statement = Slim::Statement->new( ["inst_2", "callAndAssign", '$current_cost', "obj_1", "totalCost", "10"] );
 	my $response = $call_statement->execute($statementExecutor);
 	is(@$response[0], "inst_2", "instruction id returned as first element");
 	is(@$response[1], "10000", "method return value returned as second element");

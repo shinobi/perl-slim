@@ -23,4 +23,34 @@ sub search_by_school_year {
 	return @matching_students;
 }
 
+sub search_by_ids {
+	my @id_array = shift;
+	my @all_students = Slim::SampleCodeUnderTest::StudentEnrollmentManager->get_all_students;
+	my @matching_students;
+	my $student;
+	
+	foreach $student (@all_students) {
+		if (id_in($student->id, @id_array))
+		{
+			push(@matching_students, $student);
+		}
+    }
+
+	return @matching_students;
+}
+
+sub id_in {
+	my $target_id = shift;
+	my @id_array = shift;
+	
+	my $cur_id;
+	foreach $cur_id (@id_array) {
+		if ($cur_id eq $target_id)
+		{
+			return 1;
+		}
+    }
+    return 0;	
+}
+
 1;

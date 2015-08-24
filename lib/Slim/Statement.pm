@@ -53,9 +53,10 @@ sub handle_command() {
 	       	return $self->call_method_on_instance($statement_executor, 3);
 	   	}
 	   	case "callAndAssign" {
-	   		print("Performing call and assign instruction.\n") if $main::debug;
 	   		my $symbol_name = $self->instruction_element(2);
+	   		print("Performing call and assign instruction, symbol name passed from fitnesse is: ", $symbol_name, "\n") if $main::debug;
 	   		my $result =  $self->call_method_on_instance($statement_executor, 4);
+	   		
 	   		print("Assigning symbol ", $symbol_name, " to result value of method: ", @$result[1], ".\n") if $main::debug;
 	   		$statement_executor->add_symbol($symbol_name, @$result[1]);
 	   		return $result;
@@ -75,6 +76,7 @@ sub make_instance() {
     my @arguments = $self->get_arguments(4);
     my $arguments_found = scalar (@arguments);
     print("Number of constructor arguments found: ", $arguments_found, "\n") if $main::debug;
+    print("Arguments before symbol substitution: ", @arguments, "\n") if $main::debug;
 
     my $response_string = $statement_executor->create($self->instance_id, $class_name, @arguments);
     return [$self->instruction_id, $response_string];

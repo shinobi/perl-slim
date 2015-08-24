@@ -3,6 +3,8 @@ package Slim::ListExecutor;
 use Slim::StatementExecutor;
 use Slim::Statement;
 
+our $statement_executor;
+
 =pod
 
 =head1 NAME 
@@ -19,6 +21,10 @@ sub new {
 	my $class = shift;
 	my $self = {};
 	bless($self, $class);
+	if (!defined($statement_executor))
+	{
+		$statement_executor = Slim::StatementExecutor->new();
+	} 
 	return($self);
 }
 
@@ -30,7 +36,6 @@ sub execute {
     
     my $instruction;
     my $index = 0;
-    my $statement_executor = Slim::StatementExecutor->new();
     
     foreach $instruction (@instructions) {
         my $response = $self->execute_instruction($instruction, $statement_executor);

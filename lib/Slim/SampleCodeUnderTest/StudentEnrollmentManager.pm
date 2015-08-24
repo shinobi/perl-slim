@@ -24,6 +24,10 @@ sub get_all_students {
 	return @students;
 }
 
+sub clear_students {
+	@students = ();
+}
+
 sub generate_id {
 	return $id_sequence++;
 }
