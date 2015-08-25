@@ -18,7 +18,7 @@ sub new {
 	my $self = {};
 	$self->{fixture_instances} = { };
 	$self->{symbols} = { };
-	$self->{modules} = ['Slim::NoSuch', 'Slim::SampleFixtures'];
+	$self->{modules} = [ ];
 	bless($self, $class);
 	return($self);
 }

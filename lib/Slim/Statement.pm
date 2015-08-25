@@ -47,11 +47,20 @@ sub handle_command() {
 	    	print("Performing make instruction.\n") if $main::debug;
 	        return $self->make_instance($statement_executor);
 	    }
+	    
+	    case "import" {
+	        my $module_name_raw = $self->instruction_element(2);
+	        my $module_name_perl = $self->slim_to_perl_class($module_name_raw);
+	    	print("Performing import instruction, module to import is: [", $module_name_perl, "].\n") if $main::debug;
+	   		$statement_executor->add_module($module_name_perl);
+	   		return [$self->instruction_id, 'OK'];
+	    }
 	        
 	    case "call" {
 	    	print("Performing call method instruction.\n") if $main::debug;
 	       	return $self->call_method_on_instance($statement_executor, 3);
 	   	}
+	   	
 	   	case "callAndAssign" {
 	   		my $symbol_name = $self->instruction_element(2);
 	   		print("Performing call and assign instruction, symbol name passed from fitnesse is: ", $symbol_name, "\n") if $main::debug;
@@ -61,6 +70,7 @@ sub handle_command() {
 	   		$statement_executor->add_symbol($symbol_name, @$result[1]);
 	   		return $result;
 	   	}
+	   	
 	    else {
 	    	return [$self->instruction_id, EXCEPTION_TAG . "message:<<INVALID_STATEMENT: " . $self->command_name . ".>>"];
 	    }
