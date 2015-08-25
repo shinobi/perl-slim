@@ -118,9 +118,33 @@ sub call_method_on_instance() {
 
 sub slim_to_perl_class {
     my($self, $class_string) = @_;
+    if ($self->slim_class_name_qualified_by_package($class_string)) {
+        return $self->convert_package_qualified_class_from_slim_to_perl($class_string);
+    }
+    else {
+        return $self->convert_unqualified_class_from_slim_to_perl($class_string);
+    } 
+}
+
+sub slim_class_name_qualified_by_package {
+	my($self, $class_string) = @_;
+	if ((index($class_string, '::') != -1) || (index($class_string, '.') != -1))
+	{
+		return 1;
+	}
+	return 0;
+}
+
+sub convert_package_qualified_class_from_slim_to_perl {
+    my($self, $class_string) = @_;
     my @parts = split /\.|\:\:/, $class_string;
-    join "::", map { ucfirst $_ } @parts;
- 
+    join "::", map { ucfirst $_ } @parts;	
+}
+
+sub convert_unqualified_class_from_slim_to_perl {
+	my($self, $class_string) = @_;
+	my @parts = split /\ /, $class_string;
+    join "", map { ucfirst $_ } @parts;
 }
 
 sub slim_to_perl_method {

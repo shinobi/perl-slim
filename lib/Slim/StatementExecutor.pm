@@ -86,7 +86,7 @@ sub construct_instance {
         my $class_object = $located_class->new(@args_with_symbols_replaced);
     }
     or do {
-        print("Exception detected instantiating fixture: ", $@, "\n");
+        print("Exception detected instantiating fixture: ", $@, "\n") if $main::debug;
         return undef;
     }
 }
@@ -108,10 +108,8 @@ sub class_name_already_fully_qualified {
 	my($self, $class_name) = @_;
 	if (index($class_name, '::') != -1)
 	{
-		print("Class name determined to be fully qualified.\n");
 		return 1;
 	}
-	print("Class name not fully qualified, will need to check modules.\n");
 	return 0;
 }
 
@@ -136,7 +134,7 @@ sub require_class_unqualified {
 			eval "require $class_to_try";
 		} or do {
 			my $error = $@;
-			print($error, "Not a valid class name: $class_to_try.  Skipping this one.\n");
+			print($error, "Not a valid class name: $class_to_try.  Skipping this one.\n") if $main::debug;
 			next;
 		};
 		print("Found valid class name by using modules: ", $class_to_try, ".\n") if $main::debug;
@@ -149,11 +147,9 @@ sub build_names_from_modules {
 	my @names_to_try;
 	foreach $module (@{$self->{modules}}) {
 		my $concat_name = $module . '::' . $class_name;
-		print("Will need to try name ", $concat_name, ".\n");
 		push(@names_to_try, $concat_name);
 	}
 	my $size_of_names_to_try = scalar @names_to_try;
-	print("Total number of names to try with modules added: ", $size_of_names_to_try, ".\n");
 	return @names_to_try;
 }
 
@@ -193,7 +189,6 @@ sub replace_symbol_in_text_words {
 	my($self, $text) = @_;
 	
 	if ($self->is_a_symbol($text)) {
-		print("Entire text is a symbol.\n");
 		return $self->acquire_symbol($text);
 	}
 	else {
