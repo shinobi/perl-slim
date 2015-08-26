@@ -1,5 +1,0 @@
-
-* install Moose
-* Install more test modules (critic, pod, podcoverage etc)
-* install Net::Server or equiv.
-* find out about braces in emacs on the mac :-)
