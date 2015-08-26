@@ -157,8 +157,6 @@ sub add_symbol {
 	my($self, $symbol_name, $symbol_value) = @_;
 	print("Setting symbol $symbol_name to value $symbol_value.\n") if $main::debug;
 	$self->symbols->{$symbol_name} = $symbol_value;
-	my $size_of_symbols_hash = keys $self->{symbols};
-	print("Size of symbol hash now: ", $size_of_symbols_hash, ".\n") if $main::debug;
 }
 
 sub get_symbol_value {
@@ -170,8 +168,7 @@ sub get_symbol_value {
 sub acquire_symbol {
 	my($self, $symbol_from_fitnesse) = @_;
 	my $symbol_name = substr($symbol_from_fitnesse, 1, (length $symbol_from_fitnesse));
-	my $size_of_symbols_hash = keys $self->{symbols};
-	print("Looking for symbol [", $symbol_name, "] in current map of symbols, size of symbols is: [", $size_of_symbols_hash, "].\n") if $main::debug;
+	print("Looking for symbol [", $symbol_name, "] in current map of symbols.\n") if $main::debug;
 	my $symbol_value = $self->get_symbol_value($symbol_name);
 	return $symbol_value if defined $symbol_value;
 	return $symbol_name;
