@@ -16,7 +16,6 @@ sub add_student {
 	my $student_id = generate_id();
 	my $student_to_add = Slim::SampleCodeUnderTest::Student->new($student_id, $name, $school_year, $age);
 	push(@students, $student_to_add);
-	print("Added student, returning student id: ", $student_id, "\n");
 	return $student_id;
 }
 

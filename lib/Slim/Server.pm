@@ -45,7 +45,7 @@ sub run {
     {
         sleep(0.1);
     }
-    print("Shutting down Slim Perl Server\n") if $main::debug;
+    print("Shutting down Slim Perl Server\n");
 }
 
 sub process_command_line_args {
@@ -72,7 +72,6 @@ sub serve_perl_slim {
                 
     my $said_bye = 0;
     while (!$said_bye) {
-        print("Hello Cruel World\n");
     	my $command_length = "length of command";
         my $command = "command data";
         

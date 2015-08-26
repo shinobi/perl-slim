@@ -29,11 +29,8 @@ sub query() {
 		push(@row, ["name", $student->name]);
 		push(@row, ["school year", $student->school_year]);
 		push(@row, ["age", $student->age]);
-		print(@row, "\n");
-		print("Size of row is ", scalar @row, "\n");
 		push(@list_of_rows, \@row);
     }
-    print("Size of list of rows is ", scalar @list_of_rows, "\n");
     return \@list_of_rows;
 }
 

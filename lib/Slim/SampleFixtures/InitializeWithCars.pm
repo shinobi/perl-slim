@@ -49,8 +49,6 @@ sub execute() {
 	# execute is called once for each row just after all the set functions have been called, and just before 
 	#   the first output function (if any) are called.
 	my $self = shift;
-	print("execute method of Initialze Cars fixture called by fitnesse - here is where we can add an individual car to the system\n");
-	#$self->{milk_calculator} = Slim::SampleCodeUnderTest::MilkPurchaseCalculator->new($self->{cash_in_wallet}, $self->{credit_card}, $self->{pints_of_milk_remaining});
 }
 
 sub end_table() {

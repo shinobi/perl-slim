@@ -124,7 +124,6 @@ sub listen {
 
 sub handle_connection {
     my($self, $connection, $connected) = @_;
-    print("Action is ", $self->{action}, "\n");
     my $return = $self->action()->($self, $connection);
     $connection->close;
     $$connected = 0;

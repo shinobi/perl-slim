@@ -13,7 +13,6 @@ sub search_by_school_year {
 	my $student;
 	
 	foreach $student (@all_students) {
-		print("Comparing enrolled student in year ", $student->school_year, " to year being searched: ", $school_year_for_search, ".\n");
 		if ($student->school_year eq $school_year_for_search)
 		{
 			push(@matching_students, $student);
