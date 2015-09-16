@@ -33,20 +33,7 @@ sub new {
 		chars => @chars
 	};
 	bless($self, $class);
-	load_char_width_library();
 	return($self);
-}
-
-sub load_char_width_library {
-	if ($main::pure_perl_charwidth) {
-		require Text::CharWidth::PurePerl;
-		Text::CharWidth::PurePerl->import(qw(mbswidth));
-	}
-	else
-	{
-		require Text::CharWidth;
-		Text::CharWidth->import(qw(mbswidth));
-	}
 }
 
 sub position {
@@ -137,8 +124,8 @@ sub get_multibyte_element{
     my($self, $element_length) = @_;
  
     (my $element, $element_length) = $self->read_element($element_length);
-    
     my $check_pos = $self->position + $element_length;
+
     my $char = join("", @{$self->chars()}[ $check_pos .. $check_pos ]);
 
     unless ( $char eq ':') {
@@ -169,6 +156,7 @@ sub read_with_timeout {
     my($self, $element_length) = @_;
     my $length_in_bytes = $element_length;
     my $element = "";
+
     $SIG{ALRM} = \&timeout;
 
     eval {
@@ -177,7 +165,7 @@ sub read_with_timeout {
         do {
             $length_in_bytes++;
             $element = $self->get_char_slice($length_in_bytes);
-        } until (mbswidth($element) > $element_length);
+        } until (length($element) > $element_length);
 
         alarm(0);
     };
@@ -185,6 +173,7 @@ sub read_with_timeout {
     if ($@ =~ /Timeout in reading string/) {
         die("Multibyte characters detected in string");
     }
+    
 
     ($length_in_bytes, $element);
 

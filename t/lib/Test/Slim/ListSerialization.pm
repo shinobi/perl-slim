@@ -6,6 +6,8 @@ use base qw(Test::Class);
 use Test::More;
 use Slim::List::Serializer;
 
+use utf8;
+
 my $serializer = undef;
 my @list = undef;
 
@@ -55,13 +57,11 @@ sub can_serialize_doubly_nested_list : Test(1) {
       "nested arrays creates nested response")
 }
 
-
 sub can_serialize_a_nonstring_element_list : Test(1) {
     @list = (1);
     is( $serializer->serialize(@list), "[000001:000001:1:]", 
         "non-strings are not processed");
 }
-
 
 sub can_serialize_null_element : Test(1) {
     @list = (undef);
@@ -69,18 +69,27 @@ sub can_serialize_null_element : Test(1) {
         "undef/null element is translated to string 'null'");
 }
 
-
 sub can_serialize_string_with_multibyte : Test(1) {
     @list = qw(Köln);
     is( $serializer->serialize(@list), "[000001:000004:Köln:]", 
       "multibyte strings are encoded as length in characters, not bytes");
 }
 
-
 sub can_serialize_string_with_utf8 : Test(1) {
     @list = ("Español");
     is( $serializer->serialize(@list), "[000001:000007:Español:]", 
       "UTF-8 strings are encoded as length in characters, not bytes");
 }
+
+sub can_serialize_string_with_newline : Test(1) {
+	@list = ("Foo\n");
+	is($serializer->serialize(@list), "[000001:000004:Foo\n:]", "Newline counted as single character.");
+}
+
+sub can_serialize_string_with_tab : Test(1) {
+	@list = ("Foo\t");
+	is($serializer->serialize(@list), "[000001:000004:Foo\t:]", "Tab counted as single character.");
+}
+
 
 1;

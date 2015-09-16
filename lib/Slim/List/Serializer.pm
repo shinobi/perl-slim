@@ -63,7 +63,9 @@ sub process_elements {
     foreach my $element ( @list ) {
         $element = 'null' unless defined $element;
         $element = $self->serialize(@$element) if ref $element eq 'ARRAY';
-        push(@out, $self->encode_length( mbswidth($element)));
+        my $element_length = length($element);
+        print("Element length calculated: $element_length.\n");
+        push(@out, $self->encode_length($element_length));
         push(@out, "$element:");
     }
 

@@ -9,6 +9,9 @@ use Test::Exception;
 use Slim::List::Deserializer;
 use Slim::List::Serializer;
 
+use utf8;
+
+
 my $serializer;
 my $deserializer;
 my @list;
@@ -48,6 +51,9 @@ sub can_deserialize_a_nested_lists : Test(1) {
 
 sub can_deserialize_lists_with_multibyte_strings : Test(1) {
     my @list = ("Köln");
+    my @serialized = $serializer->serialize(@list);
+    print(@serialized, "\n");
+
     compare_lists(@list);
 }
 
@@ -58,6 +64,18 @@ sub can_deserialize_list_with_element_ending_in_multibyte_char : Test(1) {
 
 sub can_deserialize_lists_with_utf8_strings : Test(1) {
     my @list = ("123456789012345", "Español");
+    compare_lists(@list);
+}
+
+sub can_deserialize_lists_without_newlines : Test(1) {
+    my @list = ("123456789012345", "foo");
+    my @serialized = $serializer->serialize(@list);
+    compare_lists(@list);
+}
+
+sub can_deserialize_lists_with_newlines : Test(1) {
+    my @list = ("123456789012345", "foo\n");
+    my @serialized = $serializer->serialize(@list);
     compare_lists(@list);
 }
 
