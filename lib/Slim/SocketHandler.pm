@@ -89,6 +89,7 @@ sub handle {
     $self->set_socket($self->open_socket() );
  
     $self->set_listener_thread(threads->create( 'listen', $self, $connected));
+    $self->{listener_thread}->detach();
 }
 
 sub pending_sessions {
@@ -110,15 +111,13 @@ sub close_all {
 
 =cut
 
-
-
 sub listen {
     my($self, $connected) = @_;
-    print("Here, port is: ", $self->port, "\n");
     while ( my $connection = $self->{socket}->accept() ) {
     	print("Accepted connection on socket.\n") if $main::debug;
    		my $peer_address = $connection->peerport();
-     	threads->create('handle_connection', $self, $connection, $connected);
+     	my $thr = threads->create('handle_connection', $self, $connection, $connected);
+     	$thr->detach();
     }
 }
 
