@@ -77,8 +77,14 @@ sub serve_perl_slim {
         
         $conn->recv($command_length, 6);
         $conn->recv($command, 1);  #skip colon following length of command
-        $conn->recv($command, $command_length);
-        
+        my $total = 0;
+        $command = '';
+        while ($total < $command_length) {
+          my $buf;
+          last unless defined $conn->recv($buf, $command_length);
+          $total += length $buf;
+          $command .= $buf;
+        } 
         print("Command received from fitnesse of length: $command_length, payload: \n$command\n") if $main::debug;
 
         if (!($command eq "bye")) {
